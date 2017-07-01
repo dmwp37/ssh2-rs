@@ -34,12 +34,8 @@ fn main() {
 
     let target = env::var("TARGET").unwrap();
 
-    // Don't use OpenSSL on Windows, instead use the native Windows backend.
-    if target.contains("windows") {
-        cfg.define("CRYPTO_BACKEND", "WinCNG");
-    } else {
-        cfg.define("CRYPTO_BACKEND", "OpenSSL");
-    }
+    cfg.define("CRYPTO_BACKEND", "OpenSSL");
+
 
     // If libz-sys was built it'll give us an include directory to learn how to
     // link to it, and for MinGW targets we just pass a dummy include dir to
@@ -90,6 +86,10 @@ fn main() {
         println!("cargo:rustc-link-lib=bcrypt");
         println!("cargo:rustc-link-lib=crypt32");
         println!("cargo:rustc-link-lib=user32");
+        println!("cargo:rustc-link-lib=libcrypto");
+        let openssl_dir = env::var_os("OPENSSL_DIR").unwrap();
+        let lib_dir = Path::new(&openssl_dir).join("lib");
+        println!("cargo:rustc-link-search=native={}", lib_dir.to_string_lossy());
     }
 
     // msvc generates libssh2.lib, everywhere else generates libssh2.a
